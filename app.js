@@ -653,12 +653,12 @@ async function sendAIMessage() {
   loadingDiv.textContent = '⏳ กำลังคิด...';
   document.getElementById('aiMessages').appendChild(loadingDiv);
 
-  // --- ส่วนสำคัญ: ดึงคีย์จากตัวแปร (แนะนำให้ทำ API Restriction ใน Google AI Studio) ---
+  // --- แก้ไขตรงนี้: ใส่ Key ตรงๆ และใช้ URL ที่ถูกต้อง ---
   const API_KEY = 'AIzaSyDd4teci0Mynha-arnUnG6zjYPPjcjFkLA'; 
-  const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY}`;
+  const API_URL = `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${API_KEY}`;
 
   const systemContext = state.results
-    ? `ผู้ใช้มีผลการคำนวณ: ระบบ ${state.results.systemLabel}, ${state.results.kwp}kWp, ${state.results.panels}แผง, ค่าติดตั้งรวม ฿${state.results.costTotal.toLocaleString()}, คืนทุน ${state.results.paybackYears.toFixed(1)} ปี, ประหยัด ฿${state.results.monthlySaving.toLocaleString()}/เดือน`
+    ? `ผู้ใช้มีผลการคำนวณ: ระบบ ${state.results.systemLabel}, ${state.results.kwp}kWp, ${state.results.panels}แผง, คืนทุน ${state.results.paybackYears.toFixed(1)} ปี`
     : 'ผู้ใช้กำลังใช้เครื่องคำนวณโซลาร์เซลล์';
 
   try {
@@ -667,16 +667,7 @@ async function sendAIMessage() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         contents: [{
-          parts: [{ 
-            text: `คุณคือ "WiTSolarBot" ที่ปรึกษาโซลาร์เซลล์ผู้เชี่ยวชาญในประเทศไทย
-            หน้าที่ของคุณ:
-            1. วิเคราะห์ข้อมูลจาก Context: ${systemContext} และนำมาตอบคำถามผู้ใช้
-            2. ตอบด้วยภาษาไทยที่สุภาพ เป็นกันเอง และเข้าใจง่าย
-            3. หากคำถามเกี่ยวกับความคุ้มค่า ให้เน้นย้ำเรื่องระยะเวลาคืนทุน (Payback Period) และกำไรใน 20 ปี
-            4. หากคำถามไม่เกี่ยวกับโซลาร์เซลล์ ให้ตอบอย่างสุภาพว่าคุณเป็นผู้เชี่ยวชาญด้านพลังงานแสงอาทิตย์เท่านั้น
-
-            คำถามจากผู้ใช้: ${text}` 
-          }]
+          parts: [{ text: `คุณคือ WiTSolarBot ที่ปรึกษาโซลาร์เซลล์ Context: ${systemContext} คำถาม: ${text}` }]
         }]
       })
     });
@@ -687,13 +678,14 @@ async function sendAIMessage() {
     if (data.candidates && data.candidates[0].content.parts[0].text) {
       addAIMessage(data.candidates[0].content.parts[0].text, 'ai');
     } else {
-      console.error("AI Error Response:", data);
-      addAIMessage('ขออภัย AI ปฏิเสธคำขอ (ตรวจสอบ API Key หรือ Quota นะครับ)', 'ai');
+      // ถ้า Error จะโชว์ใน Console (F12) เพื่อให้เราเช็คสาเหตุได้
+      console.error("AI Error:", data);
+      addAIMessage('AI ปฏิเสธคำขอ ตรวจสอบหน้า Console (F12) นะครับ', 'ai');
     }
   } catch (e) {
     loadingDiv.remove();
     console.error("Fetch Error:", e);
-    addAIMessage('ขออภัย ไม่สามารถเชื่อมต่อ AI ได้ (อาจติดปัญหาเรื่องความปลอดภัย Browser)', 'ai');
+    addAIMessage('เชื่อมต่อไม่ได้ ตรวจสอบ Internet นะครับ', 'ai');
   }
 }
 
