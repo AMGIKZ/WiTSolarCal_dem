@@ -655,13 +655,7 @@ async function sendAIMessage() {
 
   // --- แก้ไขตรงนี้: ใส่ Key ตรงๆ และใช้ URL ที่ถูกต้อง ---
   const API_KEY = 'AIzaSyDd4teci0Mynha-arnUnG6zjYPPjcjFkLA'; 
-  // แก้ไขบรรทัด API_URL เดิม เป็นอันนี้ครับ
-  // 
   const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY}`;
-
-  const systemContext = state.results
-    ? `ผู้ใช้มีผลการคำนวณ: ระบบ ${state.results.systemLabel}, ${state.results.kwp}kWp, ${state.results.panels}แผง, คืนทุน ${state.results.paybackYears.toFixed(1)} ปี`
-    : 'ผู้ใช้กำลังใช้เครื่องคำนวณโซลาร์เซลล์';
 
   try {
     const response = await fetch(API_URL, {
@@ -669,7 +663,7 @@ async function sendAIMessage() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         contents: [{
-          parts: [{ text: `คุณคือที่ปรึกษาโซลาร์เซลล์ คำถาม: ${text}` }]
+          parts: [{ text: `คุณคือ WiTSolarBot คำถามคือ: ${text}` }]
         }]
       })
     });
