@@ -653,36 +653,47 @@ async function sendAIMessage() {
   loadingDiv.textContent = '⏳ กำลังคิด...';
   document.getElementById('aiMessages').appendChild(loadingDiv);
 
+  // --- ส่วนสำคัญ: ดึงคีย์จากตัวแปร (แนะนำให้ทำ API Restriction ใน Google AI Studio) ---
+  const API_KEY = 'AIzaSyDd4teci0Mynha-arnUnG6zjYPPjcjFkLA'; 
+  const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY}`;
+
   const systemContext = state.results
     ? `ผู้ใช้มีผลการคำนวณ: ระบบ ${state.results.systemLabel}, ${state.results.kwp}kWp, ${state.results.panels}แผง, ค่าติดตั้งรวม ฿${state.results.costTotal.toLocaleString()}, คืนทุน ${state.results.paybackYears.toFixed(1)} ปี, ประหยัด ฿${state.results.monthlySaving.toLocaleString()}/เดือน`
     : 'ผู้ใช้กำลังใช้เครื่องคำนวณโซลาร์เซลล์';
 
   try {
-    const response = await fetch('https://api.anthropic.com/v1/messages', {
+    const response = await fetch(API_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
-        max_tokens: 1000,
-        system: `คุณคือที่ปรึกษาโซลาร์เซลล์ผู้เชี่ยวชาญสำหรับตลาดประเทศไทย ตอบเป็นภาษาไทย กระชับ ชัดเจน ให้ข้อมูลเชิงปฏิบัติ
-        Context: ${systemContext}
-        ตอบในประเด็น: เทคนิคโซลาร์เซลล์, การเลือกระบบ, มิเตอร์ TOU vs ปกติ, On-grid vs Hybrid, แบตเตอรี่, ROI, กฎหมาย/ข้อกำหนดไทย, การบำรุงรักษา
-        ถ้าคำถามไม่เกี่ยวข้อง บอกว่าตอบได้เฉพาะเรื่องโซลาร์เซลล์เท่านั้น`,
-        messages: [{ role: 'user', content: text }]
+        contents: [{
+          parts: [{ 
+            text: `คุณคือ "WiTSolarBot" ที่ปรึกษาโซลาร์เซลล์ผู้เชี่ยวชาญในประเทศไทย
+            หน้าที่ของคุณ:
+            1. วิเคราะห์ข้อมูลจาก Context: ${systemContext} และนำมาตอบคำถามผู้ใช้
+            2. ตอบด้วยภาษาไทยที่สุภาพ เป็นกันเอง และเข้าใจง่าย
+            3. หากคำถามเกี่ยวกับความคุ้มค่า ให้เน้นย้ำเรื่องระยะเวลาคืนทุน (Payback Period) และกำไรใน 20 ปี
+            4. หากคำถามไม่เกี่ยวกับโซลาร์เซลล์ ให้ตอบอย่างสุภาพว่าคุณเป็นผู้เชี่ยวชาญด้านพลังงานแสงอาทิตย์เท่านั้น
+
+            คำถามจากผู้ใช้: ${text}` 
+          }]
+        }]
       })
     });
 
     const data = await response.json();
     loadingDiv.remove();
 
-    if (data.content?.[0]?.text) {
-      addAIMessage(data.content[0].text, 'ai');
+    if (data.candidates && data.candidates[0].content.parts[0].text) {
+      addAIMessage(data.candidates[0].content.parts[0].text, 'ai');
     } else {
-      addAIMessage('ขออภัย เกิดข้อผิดพลาด ลองใหม่อีกครั้งนะครับ 🙏', 'ai');
+      console.error("AI Error Response:", data);
+      addAIMessage('ขออภัย AI ปฏิเสธคำขอ (ตรวจสอบ API Key หรือ Quota นะครับ)', 'ai');
     }
   } catch (e) {
     loadingDiv.remove();
-    addAIMessage('ขออภัย ไม่สามารถเชื่อมต่อ AI ได้ในขณะนี้ ลองถามใหม่อีกครั้งนะครับ', 'ai');
+    console.error("Fetch Error:", e);
+    addAIMessage('ขออภัย ไม่สามารถเชื่อมต่อ AI ได้ (อาจติดปัญหาเรื่องความปลอดภัย Browser)', 'ai');
   }
 }
 
