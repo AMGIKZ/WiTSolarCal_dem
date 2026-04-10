@@ -654,8 +654,10 @@ async function sendAIMessage() {
   document.getElementById('aiMessages').appendChild(loadingDiv);
 
   // --- แก้ไขตรงนี้: ใส่ Key ตรงๆ และใช้ URL ที่ถูกต้อง ---
-  const API_KEY = 'AIzaSyDd4teci0Mynha-arnUnG6zjYPPjcjFkLA'; 
+  const API_KEY = 'AIzaSyDd4teci0Mynha-arnUnG6zjYPPjcjFkLA';
+
   const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY}`;
+
 
   try {
     const response = await fetch(API_URL, {
